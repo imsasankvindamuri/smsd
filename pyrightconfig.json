@@ -1,0 +1,8 @@
+{
+    "include": ["src", "tests"],
+    "exclude": ["**/.venv", "**/__pycache__"],
+    "stubPath": "typings",
+
+    "venvPath": ".",
+    "venv": ".venv",
+}
