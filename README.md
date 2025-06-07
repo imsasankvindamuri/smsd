@@ -4,7 +4,7 @@ The Simple Music Pseudo-Daemon
 
 ---
 
-### License
+# License
 
 This project is licensed under the [MIT License](./LICENSE).
 
