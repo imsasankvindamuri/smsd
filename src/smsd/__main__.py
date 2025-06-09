@@ -1,6 +1,7 @@
 # SiMP/src/simp/__main__.py
 
-from smsd.musiccorelib import MusicCoreLib, PlayerError
+from smsd.musiccorelib import MusicCoreLib
+from smsd.exceptions import PlayerError
 from pathlib import Path
 import os
 
