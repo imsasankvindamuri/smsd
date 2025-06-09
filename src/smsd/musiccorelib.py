@@ -1,9 +1,12 @@
+# Released under the MIT License. See LICENSE file for further details.
+
 import vlc
 from pathlib import Path
 from mutagen._file import File
 from urllib.parse import urlparse, unquote
 from contextlib import contextmanager
 import threading
+from smsd.exceptions import PlayerError, PlaylistNotLoadedError, InvalidPlaylistError, Constants
 
 # Written in Helix btw.
 
@@ -34,12 +37,13 @@ class MusicCoreLib:
     # 4) Exiting gracefully
 
     # Getter functions. DO NOT COMPOSE THESE WITH THE SETTERS.
+    # They are meant to give read-only access to internals.
 
     def get_playlist(self) -> list[Path]:
         with self._lock:
             self._check_playlist_loaded()
             return [self._mrl_parse(song) for song in self._playlist]
-  
+    
     def get_mode(self) -> vlc.PlaybackMode:
         with self._lock:
             return self._mode
@@ -50,7 +54,7 @@ class MusicCoreLib:
             media_player = self._queue.get_media_player()
             current_song = media_player.get_media()
             if current_song is None:
-                raise PlayerError("No song playing.")
+                raise PlayerError("No song is currently playing")
             else:
                 return self._mrl_parse(current_song)
 
@@ -60,10 +64,10 @@ class MusicCoreLib:
             media_player = self._queue.get_media_player()
             current_song = media_player.get_media()
             if current_song is None:
-                raise PlayerError("No song playing.")
+                raise PlayerError("No song is currently playing")
             index = self._playlist.index_of_item(current_song)
             if index == -1:
-                raise PlayerError("Current song is not part of the playlist.")
+                raise PlayerError("Current song is not part of the playlist")
             return index
                 
 
@@ -161,7 +165,7 @@ class MusicCoreLib:
                 case "REPEAT":
                     self._mode = self._constants.REPEAT
                 case _:
-                    raise PlayerError(f"Error: Invalid Command: {mode}")
+                    raise PlayerError(f"Invalid playback mode: '{mode}'. Valid modes: NORMAL, LOOP, REPEAT")
 
             self._queue.set_playback_mode(self._mode)
 
@@ -172,12 +176,12 @@ class MusicCoreLib:
         with self._lock:
             self._check_playlist_loaded()
             if not 0 <= vol <= 100:
-                raise PlayerError(f"Invalid volume value '{vol}'; 0 <= Volume <= 100")
+                raise PlayerError(f"Volume must be between 0-100, got: {vol}")
             media_player = self._queue.get_media_player()
             if media_player:
                 media_player.audio_set_volume(vol)
             else:
-                raise PlayerError("No MediaPlayer Instance found.")
+                raise PlayerError("No MediaPlayer instance found")
 
     # Playback features. No comments here: they are self-documenting.
     # Nonetheless, docstrings.
@@ -193,7 +197,7 @@ class MusicCoreLib:
             if 0 <= index < self._playlist.count():
                 self._queue.play_item_at_index(index)
             else:
-                raise PlayerError(f"Error: Invalid index for given playlist; index must be greater than or equal to 0 and less than {self._playlist.count()} for this playlist")
+                raise PlayerError(f"Index {index} out of range for playlist (0-{self._playlist.count()-1})")
 
 
     def toggle_pause(self) -> None:
@@ -238,9 +242,7 @@ class MusicCoreLib:
         causing self._playlist.count() to return 0.
         """
         if self._playlist.count() == 0:
-            raise PlaylistNotLoadedError(f"Error: No playlist is loaded, or loaded playlist is empty. Please load a playlist with the following valid filetypes\n{
-                                             [filetype for filetype in self._constants.SUPPORTED_MEDIA_FILETYPES]
-                                         }")
+            raise PlaylistNotLoadedError(constants=self._constants)
 
     def _is_valid_playlist(self, playlist : Path) -> None:
         """
@@ -248,12 +250,10 @@ class MusicCoreLib:
         Use when updating existing playlist.
         """
         if not playlist.exists() or not playlist.is_dir():
-            raise InvalidPlaylistError(f"{playlist} is not a valid directory.")
+            raise InvalidPlaylistError(path=playlist)
 
         if any(path.is_dir() for path in playlist.iterdir()):
-            raise InvalidPlaylistError(f"Error: A playlist must be a flat directory with the following file formats \n{
-                             [filetype for filetype in self._constants.SUPPORTED_MEDIA_FILETYPES]
-                         }.")
+            raise InvalidPlaylistError(constants=self._constants)
 
     @contextmanager
     def _do_in_mode(self, mode : vlc.PlaybackMode):
@@ -276,34 +276,6 @@ class MusicCoreLib:
         mrl = song.get_mrl()
         parsed = urlparse(mrl)
         if parsed.scheme != "file":
-            raise PlayerError(f"Error parsing file {mrl}")
+            raise PlayerError(f"Unable to parse file URL: {mrl}")
         path_str = unquote(parsed.path)
         return Path(path_str)
-
-class Constants:
-    def __init__(self) -> None:
-        # Define constants; No magic numbers here, sir!
-        self.NORMAL = vlc.PlaybackMode(0)
-        self.LOOP = vlc.PlaybackMode(1)
-        self.REPEAT = vlc.PlaybackMode(2)
-        self.SUPPORTED_MEDIA_FILETYPES = frozenset({
-            ".mp3",
-            ".wav",
-        })
-
-        # Might add other filetypes later. Gotta ship MVP first.
-
-
-# ++++++++++ EXCEPTIONS ++++++++++ #
-
-class PlayerError(Exception):
-    """Base exception for player-related errors."""
-    pass
-
-class PlaylistNotLoadedError(PlayerError):
-    """Raised when an operation requires a playlist but none is loaded."""
-    pass
-
-class InvalidPlaylistError(PlayerError):
-    """Raised when the playlist directory is invalid."""
-    pass
