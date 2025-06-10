@@ -6,7 +6,7 @@ from mutagen._file import File
 from urllib.parse import urlparse, unquote
 from contextlib import contextmanager
 import threading
-from smsd.exceptions import PlayerError, PlaylistNotLoadedError, InvalidPlaylistError, Constants
+from smsd.exceptions import PlayerError, PlaylistNotLoadedError, InvalidPlaylistError, SongNotInPlaylistError, Constants
 
 # Written in Helix btw.
 
@@ -188,16 +188,14 @@ class MusicCoreLib:
 
     # Also, thread safety--- just in case.
 
-    def play(self, index : int = 0) -> None:
+    def play(self, song_path : Path) -> None:
         """
-        Plays the song in index. Uses 0 indexing.
+        Plays song based on path
         """
-        with self._lock:        
+        with self._lock:
             self._check_playlist_loaded()
-            if 0 <= index < self._playlist.count():
-                self._queue.play_item_at_index(index)
-            else:
-                raise PlayerError(f"Index {index} out of range for playlist (0-{self._playlist.count()-1})")
+            index = self._get_index_by_path(song_path)
+            self._play_at_index(index)
 
 
     def toggle_pause(self) -> None:
@@ -279,3 +277,24 @@ class MusicCoreLib:
             raise PlayerError(f"Unable to parse file URL: {mrl}")
         path_str = unquote(parsed.path)
         return Path(path_str)
+
+    def _get_index_by_path(self, song_path : Path) -> int:
+        """
+        Take a song path and return its index in the playlist
+        """
+        with self._lock:
+            song_path = song_path.expanduser().resolve()
+            try:
+                return self.get_playlist().index(song_path)
+            except ValueError:
+                raise SongNotInPlaylistError(song_path=song_path)
+
+    def _play_at_index(self, index : int = 0) -> None:
+        """
+        Plays the song in index. Uses 0 indexing.
+        """
+        with self._lock:
+            if 0 <= index < self._playlist.count():
+                self._queue.play_item_at_index(index)
+            else:
+                raise PlayerError(f"Index {index} out of range for playlist (0-{self._playlist.count()-1})")

@@ -1,6 +1,8 @@
 # Released under the MIT License. See LICENSE file for further details.
 
 import vlc
+from pathlib import Path
+import os
 
 # ++++++++++ EXCEPTIONS ++++++++++ #
 
@@ -44,6 +46,37 @@ class InvalidPlaylistError(PlayerError):
                         "Invalid playlist: must be a flat directory containing "
                         "only supported audio files"
                     )
+        super().__init__(message)
+
+class SongNotInPlaylistError(PlayerError):
+    """Raised when given song is not in playlist"""
+    def __init__(self, message=None, song_path=None):
+        if song_path is not None:
+            message = f"Given song path {song_path} not found in current playlist."
+        else:
+            message = "Given song path not found in current playlist."
+        super().__init__(message)
+
+
+class FuzzyError(Exception):
+    """Base class for fzf-related related exceptions"""
+    def __init__(self, message="An error occurred while fuzzy finding.") -> None:
+        super().__init__(message)
+
+class UnFuzzifyablePathError(FuzzyError):
+    """Raised when provided path is cannot be used for fuzzyfinding"""
+    def __init__(self, rootpath, message=None) -> None:
+        if message is None:
+            if not isinstance(rootpath, Path):
+                message = f"Expected `Path` instance, got {rootpath}"
+            elif not rootpath.exists():
+                message = f"Nonexistant `Path` instance provided: {rootpath.resolve()}"
+            elif not rootpath.is_dir():
+                message = f"Expected directory path, got filepath {rootpath.resolve()}"
+            elif not os.access(rootpath, os.R_OK | os.X_OK):
+                message = f"Insufficient file permissions to access directory {rootpath.resolve()}"
+            else:
+                message = f"Unexpected error accessing path: {rootpath.resolve()}"
         super().__init__(message)
 
 class Constants:
