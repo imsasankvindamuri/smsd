@@ -1,15 +1,17 @@
-# SiMP/src/simp/__main__.py
+# __main__.py
 
 from smsd.musiccorelib import MusicCoreLib
-from smsd.exceptions import PlayerError
+from smsd.warmfuzzies import WarmFuzzies
+from smsd.exceptions import PlayerError, UnFuzzifyablePathError
 from pathlib import Path
 import os
 
 def main() -> None:
     player = MusicCoreLib()
     music_dir = Path.home() / "Music"
+    warmfuzzies = WarmFuzzies(music_dir)
 
-    print("Welcome to SiMP - The Simple Music Player")
+    print("Welcome to smsd - The Simple Music Pseudo Daemon")
     print(f"Default music directory: {music_dir}")
     print("Type 'help' to see available commands.\n")
 
@@ -41,13 +43,6 @@ def main() -> None:
         except PlayerError as e:
             print(f"Error: {e}")
 
-    def show_current_index() -> None:
-        try:
-            idx = player.get_current_index()
-            print(f"Current song index: [{idx}]")
-        except PlayerError as e:
-            print(f"Error: {e}")
-
     def show_volume() -> None:
         try:
             vol = player.get_current_volume()
@@ -55,17 +50,30 @@ def main() -> None:
         except PlayerError as e:
             print(f"Error: {e}")
 
+    def load_playlist() -> None:
+        try:
+            selected_playlist = warmfuzzies.select_playlist()
+            player.playlistctl(selected_playlist)
+            print(f"Loaded playlist: {selected_playlist}")
+            show_playlist()
+            play_song()
+        except (PlayerError, UnFuzzifyablePathError) as e:
+            print(f"Error: {e}")
+
+    def play_song() -> None:
+        try:
+            playlist = player.get_playlist()
+            selected_song = warmfuzzies.select_one_song(playlist)
+            player.play(selected_song)
+            show_now_playing()
+        except (PlayerError, UnFuzzifyablePathError, IndexError) as e:
+            print(f"Error: {e}")
+
     # Command dispatcher
     def dispatch(cmd: str) -> bool:
         match cmd:
             case "play":
-                try:
-                    idx = int(input("Enter song index (default 0): ") or "0")
-                    player.play(idx)
-                except ValueError:
-                    print("Invalid index. Must be an integer.")
-                except PlayerError as e:
-                    print(f"Error: {e}")
+                play_song()
 
             case "pause":
                 try:
@@ -85,15 +93,7 @@ def main() -> None:
                 return False
 
             case "load":
-                print(f"Enter path to playlist directory (default: {music_dir}):")
-                path_input = input(">>> ").strip()
-                try:
-                    path = Path(path_input).expanduser().resolve() if path_input else music_dir
-                    player.playlistctl(path)
-                    print(f"Loaded playlist: {path}")
-                    show_playlist()
-                except PlayerError as e:
-                    print(f"Error: {e}")
+                load_playlist()
 
             case "mode":
                 print("Available modes: NORMAL, LOOP, REPEAT")
@@ -142,13 +142,17 @@ def main() -> None:
                 show_playlist()
 
             case "index":
-                show_current_index()
+                try:
+                    idx = player.get_current_index()
+                    print(f"Current song index: [{idx}]")
+                except PlayerError as e:
+                    print(f"Error: {e}")
 
             case "help":
                 print("""
 Available commands:
-  load     - Load a playlist directory
-  play     - Play track at index
+  load     - Load a playlist directory (fuzzy find)
+  play     - Select and play a song (fuzzy find)
   pause    - Toggle pause
   mode     - Change playback mode (NORMAL, LOOP, REPEAT)
   next     - Play next track
