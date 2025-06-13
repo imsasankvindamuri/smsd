@@ -10,6 +10,8 @@ from smsd.exceptions import UnFuzzifyablePathError
 # - Allow for song selection
 # - Allow for playlist selection
 # - Allow for multiple song selection when downloading
+#
+# It is a helper function to act as a pseudo-TUI
 
 Mode = str
 
@@ -30,15 +32,27 @@ class WarmFuzzies:
         self = self.set_rootpath(rootpath)
 
     def select_one_song(self, playlist : list[Path]) -> Path:
-        return Path(self._fzf.prompt(playlist, self._singlechoice)[0])
+        name_to_path = {song.stem : song for song in playlist}
+        select_song = self._fzf.prompt(name_to_path.keys(), self._singlechoice)[0]
+        return name_to_path[select_song]
 
     def select_playlist(self) -> Path:
         self._check_valid_path(self._rootpath)
         playlist_set = [playlist for playlist in self._rootpath.iterdir() if playlist.is_dir()]
-        return Path(self._fzf.prompt(playlist_set, self._singlechoice)[0])
+        name_to_path = {playlist.stem : playlist for playlist in playlist_set}
+        select_playlist = self._fzf.prompt(name_to_path.keys(), self._singlechoice)[0]
+        return name_to_path[select_playlist]
 
     def select_mode(self, modes : list[Mode]) -> Mode:
         return Mode(self._fzf.prompt(modes, self._singlechoice)[0])
+
+    def select_download_songs(self, songname_to_url : dict[str,str]) -> dict:
+        if len(songname_to_url) == 1:
+            return songname_to_url
+        select_songs = self._fzf.prompt(songname_to_url.keys(), self._multichoice)
+        return {
+            song : songname_to_url[song] for song in select_songs
+        }
 
     # Helper funcs
 

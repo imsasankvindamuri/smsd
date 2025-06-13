@@ -1,6 +1,6 @@
 # Released under the MIT License. See LICENSE file for further details.
 
-import vlc
+from email import message
 from pathlib import Path
 import os
 
@@ -30,10 +30,10 @@ class PlaylistNotLoadedError(PlayerError):
 
 class InvalidPlaylistError(PlayerError):
     """Raised when the playlist directory is invalid."""
-    def __init__(self, message=None, path=None, constants=None):
+    def __init__(self, message=None, playlist=None, constants=None):
         if message is None:
-            if path:
-                message = f"'{path}' is not a valid playlist directory"
+            if playlist:
+                message = f"'{playlist}' is not a valid playlist directory"
             else:
                 if constants:
                     supported_types = list(constants.SUPPORTED_MEDIA_FILETYPES)
@@ -70,7 +70,7 @@ class UnFuzzifyablePathError(FuzzyError):
             if not isinstance(rootpath, Path):
                 message = f"Expected `Path` instance, got {rootpath}"
             elif not rootpath.exists():
-                message = f"Nonexistant `Path` instance provided: {rootpath.resolve()}"
+                message = f"Nonexistent `Path` instance provided: {rootpath.resolve()}"
             elif not rootpath.is_dir():
                 message = f"Expected directory path, got filepath {rootpath.resolve()}"
             elif not os.access(rootpath, os.R_OK | os.X_OK):
@@ -79,15 +79,18 @@ class UnFuzzifyablePathError(FuzzyError):
                 message = f"Unexpected error accessing path: {rootpath.resolve()}"
         super().__init__(message)
 
-class Constants:
-    def __init__(self) -> None:
-        # Define constants; No magic numbers here, sir!
-        self.NORMAL = vlc.PlaybackMode(0)
-        self.LOOP = vlc.PlaybackMode(1)
-        self.REPEAT = vlc.PlaybackMode(2)
-        self.SUPPORTED_MEDIA_FILETYPES = frozenset({
-            ".mp3",
-            ".wav",
-        })
 
-        # Might add other filetypes later. Gotta ship MVP first.
+class YTError(Exception):
+    """Base class for yt-dlp related exceptions"""
+    def __init__(self, message="An error occurred in yt-dlp") -> None:
+        super().__init__(message)
+
+class NoYTMetadataFoundError(Exception):
+    """Raised when yt-dlp fails to extract metadata for url"""
+    def __init__(self, url=None, message=None) -> None:
+        if message is None:
+            if url is None:
+                message = "An unexpected error occurred while extracting metadata from given url"
+            else:
+                message = f"An unexpected error occurred while extracting metadata from {url}"
+        super().__init__(message)
