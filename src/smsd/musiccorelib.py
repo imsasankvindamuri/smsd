@@ -6,7 +6,7 @@ from mutagen._file import File
 from urllib.parse import urlparse, unquote
 from contextlib import contextmanager
 import threading
-from smsd.exceptions import PlayerError, PlaylistNotLoadedError, InvalidPlaylistError, SongNotInPlaylistError, Constants
+from smsd.exceptions import PlayerError, PlaylistNotLoadedError, InvalidPlaylistError, SongNotInPlaylistError
 
 # Written in Helix btw.
 
@@ -120,11 +120,6 @@ class MusicCoreLib:
                     "File" : Path(song_path).name
                 }
 
-    def get_event_handler(self) -> vlc.EventManager:
-        with self._lock:
-            media_player = self._queue.get_media_player()
-            return media_player.event_manager()
-    
     # Setter functions
 
     def playlistctl(self, playlist_path : Path) -> None:
@@ -248,7 +243,7 @@ class MusicCoreLib:
         Use when updating existing playlist.
         """
         if not playlist.exists() or not playlist.is_dir():
-            raise InvalidPlaylistError(path=playlist)
+            raise InvalidPlaylistError(playlist=playlist)
 
         if any(path.is_dir() for path in playlist.iterdir()):
             raise InvalidPlaylistError(constants=self._constants)
@@ -298,3 +293,16 @@ class MusicCoreLib:
                 self._queue.play_item_at_index(index)
             else:
                 raise PlayerError(f"Index {index} out of range for playlist (0-{self._playlist.count()-1})")
+
+class Constants:
+    def __init__(self) -> None:
+        # Define constants; No magic numbers here, sir!
+        self.NORMAL = vlc.PlaybackMode(0)
+        self.LOOP = vlc.PlaybackMode(1)
+        self.REPEAT = vlc.PlaybackMode(2)
+        self.SUPPORTED_MEDIA_FILETYPES = frozenset({
+            ".mp3",
+            ".wav",
+        })
+
+        # Might add other filetypes later. Gotta ship MVP first. 
