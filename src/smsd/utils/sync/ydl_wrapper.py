@@ -3,7 +3,9 @@
 import shutil
 from yt_dlp import YoutubeDL
 from pathlib import Path
-from .exceptions import NoYTMetadataFoundError, InvalidPlaylistError
+from smsd.utils.exceptions import NoYTMetadataFoundError, InvalidPlaylistError
+from difflib import SequenceMatcher
+import unicodedata
 
 class Downloader:
     def __init__(self) -> None:
@@ -150,11 +152,21 @@ class Downloader:
                     })
 
             return status_report
-
         finally:
             if tmp.exists():
                 shutil.rmtree(tmp)
-
-
-    def _titles_match(self, filename : str, selected_title: str) -> bool:
-        return selected_title.lower() in filename.lower() or filename.lower() in selected_title.lower()
+        
+    def _titles_match(self, filename: str, selected_title: str, threshold: float = 0.6) -> bool:
+        def normalize_string(s):
+            return unicodedata.normalize('NFKD', s).lower().strip()
+    
+        norm_filename = normalize_string(filename)
+        norm_title = normalize_string(selected_title)
+    
+        # Check if one contains the other (original logic)
+        if norm_title in norm_filename or norm_filename in norm_title:
+            return True
+    
+        # Fuzzy matching as fallback
+        similarity = SequenceMatcher(None, norm_filename, norm_title).ratio()
+        return similarity >= threshold

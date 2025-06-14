@@ -3,7 +3,7 @@
 from smsd.utils.sync.musiccorelib import MusicCoreLib
 from smsd.utils.sync.warmfuzzies import WarmFuzzies
 from smsd.utils.sync.ydl_wrapper import Downloader
-from smsd.utils.sync.exceptions import PlayerError, UnFuzzifyablePathError
+from smsd.utils.exceptions import PlayerError, UnFuzzifyablePathError
 from pathlib import Path
 from datetime import datetime
 import os
