@@ -6,7 +6,7 @@ from mutagen._file import File
 from urllib.parse import urlparse, unquote
 from contextlib import contextmanager
 import threading
-from .exceptions import PlayerError, PlaylistNotLoadedError, InvalidPlaylistError, SongNotInPlaylistError
+from smsd.utils.exceptions import PlayerError, PlaylistNotLoadedError, InvalidPlaylistError, SongNotInPlaylistError
 
 # Written in Helix btw.
 
