@@ -1,9 +1,9 @@
 # Released under the MIT License. See LICENSE file for further details.
 
-from smsd.musiccorelib import MusicCoreLib
-from smsd.warmfuzzies import WarmFuzzies
-from smsd.ydl_wrapper import Downloader
-from smsd.exceptions import PlayerError, UnFuzzifyablePathError
+from smsd.utils.sync.musiccorelib import MusicCoreLib
+from smsd.utils.sync.warmfuzzies import WarmFuzzies
+from smsd.utils.sync.ydl_wrapper import Downloader
+from smsd.utils.sync.exceptions import PlayerError, UnFuzzifyablePathError
 from pathlib import Path
 from datetime import datetime
 import os

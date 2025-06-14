@@ -6,7 +6,7 @@ from mutagen._file import File
 from urllib.parse import urlparse, unquote
 from contextlib import contextmanager
 import threading
-from smsd.exceptions import PlayerError, PlaylistNotLoadedError, InvalidPlaylistError, SongNotInPlaylistError
+from .exceptions import PlayerError, PlaylistNotLoadedError, InvalidPlaylistError, SongNotInPlaylistError
 
 # Written in Helix btw.
 
@@ -169,7 +169,6 @@ class MusicCoreLib:
         Control volume (0-100).
         """
         with self._lock:
-            self._check_playlist_loaded()
             if not 0 <= vol <= 100:
                 raise PlayerError(f"Volume must be between 0-100, got: {vol}")
             media_player = self._queue.get_media_player()
