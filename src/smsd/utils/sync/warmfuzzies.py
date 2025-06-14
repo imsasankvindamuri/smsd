@@ -3,7 +3,7 @@
 import os
 from pyfzf.pyfzf import FzfPrompt
 from pathlib import Path
-from smsd.exceptions import UnFuzzifyablePathError
+from .exceptions import UnFuzzifyablePathError
 
 # This class is a thin wrapper around the FzfPrompt()
 # class. It has a couple responsiblities:

@@ -3,7 +3,7 @@
 import shutil
 from yt_dlp import YoutubeDL
 from pathlib import Path
-from smsd.exceptions import NoYTMetadataFoundError, InvalidPlaylistError
+from .exceptions import NoYTMetadataFoundError, InvalidPlaylistError
 
 class Downloader:
     def __init__(self) -> None:

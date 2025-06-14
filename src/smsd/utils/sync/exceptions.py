@@ -1,6 +1,5 @@
 # Released under the MIT License. See LICENSE file for further details.
 
-from email import message
 from pathlib import Path
 import os
 
