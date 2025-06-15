@@ -5,9 +5,9 @@ from pathlib import Path
 from datetime import datetime
 import os
 
-from smsd.utils.asynchronous.musiccorelib import MusicCoreLib, Mode  # Updated import
-from smsd.utils.synchronous.warmfuzzies import WarmFuzzies
-from smsd.utils.synchronous.ydl_wrapper import Downloader
+from smsd.utils.asynchronous.musiccorelib import MusicCoreLib, Mode
+from smsd.utils.asynchronous.warmfuzzies import WarmFuzzies  # Updated import
+from smsd.utils.asynchronous.ydl_wrapper import Downloader  # Updated import
 from smsd.utils.exceptions import PlayerError, UnFuzzifyablePathError
 
 
@@ -51,7 +51,7 @@ async def event_loop() -> None:
 
         async def load_playlist() -> None:
             try:
-                selected_playlist = warmfuzzies.select_playlist()
+                selected_playlist = await warmfuzzies.select_playlist()  # Now async
                 await player.playlistctl(selected_playlist)
                 print(f"Loaded playlist: {selected_playlist}")
                 await play_song()
@@ -61,7 +61,7 @@ async def event_loop() -> None:
         async def play_song() -> None:
             try:
                 playlist = await player.get_playlist()
-                selected_song = warmfuzzies.select_one_song(playlist)
+                selected_song = await warmfuzzies.select_one_song(playlist)  # Now async
                 await player.load_song(Path(selected_song))
                 await show_now_playing()
             except (PlayerError, UnFuzzifyablePathError, IndexError) as e:
@@ -75,7 +75,7 @@ async def event_loop() -> None:
                     print("No URL entered. Cancelled.")
                     return
 
-                song_entries = downloader.get_url_entries(url)
+                song_entries = await downloader.get_url_entries(url)  # Now async
                 if not song_entries:
                     print("No downloadable entries found.")
                     return
@@ -85,7 +85,7 @@ async def event_loop() -> None:
                     if full_playlist == "y":
                         chosen_urls = song_entries
                     elif full_playlist == "n":
-                        chosen_urls = warmfuzzies.select_download_songs(song_entries)
+                        chosen_urls = await warmfuzzies.select_download_songs(song_entries)  # Now async
                     else:
                         print(f"Error parsing input: {full_playlist}")
                         return
@@ -94,7 +94,7 @@ async def event_loop() -> None:
 
                 existing_playlist = input(f"Would you like to download the songs to an existing playlist? [Y/n]: ").lower() or "y"
                 if existing_playlist == "y":
-                    selected_playlist = warmfuzzies.select_playlist()
+                    selected_playlist = await warmfuzzies.select_playlist()  # Now async
                 elif existing_playlist == "n":
                     playlist_name = input("Please enter the name for your playlist or press <RET> for a default playlist name: ") or f"Playlist_{datetime.now().strftime('%Y-%m-%d_%H.%M.%S')}"
                     selected_playlist = music_dir / playlist_name
@@ -106,7 +106,7 @@ async def event_loop() -> None:
                     print(f"Error parsing input: {existing_playlist}")
                     return
 
-                status = downloader.download(url, chosen_urls, selected_playlist)
+                status = await downloader.download(url, chosen_urls, selected_playlist)  # Now async
                 print_download_status(status)
 
             except Exception as e:
@@ -200,7 +200,7 @@ async def event_loop() -> None:
                     await load_playlist()
                 case "mode":
                     try:
-                        mode = warmfuzzies.select_mode(["NORMAL", "LOOP", "REPEAT", "SHUFFLE"])
+                        mode = await warmfuzzies.select_mode(["NORMAL", "LOOP", "REPEAT", "SHUFFLE"])  # Now async
                         await player.modectl(Mode[mode.capitalize()])
                         print(f"Mode set to {mode}")
                     except (PlayerError, KeyError, IndexError) as e:
