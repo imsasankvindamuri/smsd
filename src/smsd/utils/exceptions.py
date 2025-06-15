@@ -12,10 +12,9 @@ class PlayerError(Exception):
 
 class PlaylistNotLoadedError(PlayerError):
     """Raised when an operation requires a playlist but none is loaded."""
-    def __init__(self, message=None, constants=None):
+    def __init__(self, message=None, supported_types=None):
         if message is None:
-            if constants:
-                supported_types = list(constants.SUPPORTED_MEDIA_FILETYPES)
+            if supported_types:
                 message = (
                     f"No playlist is loaded, or loaded playlist is empty. "
                     f"Please load a playlist with supported filetypes: {supported_types}"
@@ -29,13 +28,12 @@ class PlaylistNotLoadedError(PlayerError):
 
 class InvalidPlaylistError(PlayerError):
     """Raised when the playlist directory is invalid."""
-    def __init__(self, message=None, playlist=None, constants=None):
+    def __init__(self, message=None, playlist=None, supported_types=None):
         if message is None:
             if playlist:
                 message = f"'{playlist}' is not a valid playlist directory"
             else:
-                if constants:
-                    supported_types = list(constants.SUPPORTED_MEDIA_FILETYPES)
+                if supported_types:
                     message = (
                         f"Invalid playlist: must be a flat directory containing "
                         f"only supported audio files {supported_types}"
