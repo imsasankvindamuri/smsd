@@ -3,7 +3,7 @@
 import os
 from pyfzf.pyfzf import FzfPrompt
 from pathlib import Path
-from smsd.utils.exceptions import UnFuzzifyablePathError
+from smsd.utils.exceptions import UnFuzzifyablePathError, PlaylistNotLoadedError
 
 # This class is a thin wrapper around the FzfPrompt()
 # class. It has a couple responsiblities:
@@ -31,8 +31,10 @@ class WarmFuzzies:
         self._rootpath = Path()
         self = self.set_rootpath(rootpath)
 
-    def select_one_song(self, playlist : list[Path]) -> Path:
-        name_to_path = {song.stem : song for song in playlist}
+    def select_one_song(self, playlist : list[str]) -> str:
+        name_to_path = {Path(song).stem : song for song in playlist}
+        if len(name_to_path) == 0:
+            raise PlaylistNotLoadedError
         select_song = self._fzf.prompt(name_to_path.keys(), self._singlechoice)[0]
         return name_to_path[select_song]
 
