@@ -129,7 +129,7 @@ class MusicCoreLib:
     
     async def stop(self) -> None:
         """Stop playback immediately."""
-        await asyncio.to_thread(self._sync_player._player.stop)
+        await asyncio.to_thread(self._sync_player.stop)
     
     async def is_playing(self) -> bool:
         """Check if audio is currently playing."""
@@ -288,6 +288,11 @@ class _SyncMusicPlayer:
             with self._mode_change(Mode.Loop):
                 playlist_len = len(self._playlist)
                 self._call_index_daemon((self._index - 1) % playlist_len)
+
+    def stop(self) -> None:
+        """Stop the music player"""
+        with self._lock:
+            self._player.stop()
 
     def exit(self) -> None:
         """Clean up all resources including daemon thread and VLC player."""

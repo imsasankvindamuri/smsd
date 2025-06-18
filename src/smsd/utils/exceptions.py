@@ -82,7 +82,7 @@ class YTError(Exception):
     def __init__(self, message="An error occurred in yt-dlp") -> None:
         super().__init__(message)
 
-class NoYTMetadataFoundError(Exception):
+class NoYTMetadataFoundError(YTError):
     """Raised when yt-dlp fails to extract metadata for url"""
     def __init__(self, url=None, message=None) -> None:
         if message is None:
