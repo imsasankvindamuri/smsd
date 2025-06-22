@@ -3,16 +3,12 @@
 import asyncio
 from pathlib import Path
 from datetime import datetime
-import os
 
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 from rich.text import Text
-from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.prompt import Prompt, Confirm
-from rich.layout import Layout
-from rich.align import Align
 from rich import box
 from rich.rule import Rule
 

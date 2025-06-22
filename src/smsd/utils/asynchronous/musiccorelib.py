@@ -1,6 +1,6 @@
 from enum import Enum
 import threading
-from typing import Self
+from typing import Generator, Self
 import vlc
 from pathlib import Path
 import asyncio
@@ -237,7 +237,7 @@ class _SyncMusicPlayer:
             )
             self._index = 0
 
-    def modectl(self, mode) -> None:
+    def modectl(self, mode : Mode) -> None:
         """Set playback mode (Normal, Loop, Repeat, Shuffle)."""
         with self._lock:
             self._mode = mode
@@ -323,7 +323,7 @@ class _SyncMusicPlayer:
             raise InvalidPlaylistError(playlist=playlist, supported_types=self._supported_media_filetypes)
 
     @contextmanager
-    def _mode_change(self, mode : Mode):
+    def _mode_change(self, mode : Mode) -> Generator[None, None, None]:
         """
         Temporarily change playback mode within context.
         

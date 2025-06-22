@@ -9,39 +9,80 @@ import unicodedata
 import asyncio
 
 class Downloader:
+    """Async wrapper for the internal _Downloader class."""
+    
     def __init__(self) -> None:
+        """Initialize the async downloader wrapper."""
         self._downloader = _Downloader()
     
     async def get_url_entries(self, url: str) -> dict[str, str]:
-        """Async wrapper for get_url_entries"""
+        """Extract video entries from a playlist or single video URL.
+        
+        Args:
+            url: YouTube URL (video or playlist)
+            
+        Returns:
+            Dict mapping video titles to their URLs
+        """
         return await asyncio.to_thread(self._downloader.get_url_entries, url)
     
     async def download_to_path(self, playlist: Path, songlist: list[str]) -> dict:
-        """Async wrapper for download_to_path (legacy method)"""
+        """Legacy download method - avoid using due to throttling issues.
+        
+        Args:
+            playlist: Directory path to download songs to
+            songlist: List of YouTube URLs to download
+            
+        Returns:
+            Status report dict with success/failure information
+        """
         return await asyncio.to_thread(self._downloader.download_to_path, playlist, songlist)
     
     async def download(self, url: str, chosen_urls: dict[str, str], playlist: Path) -> dict:
-        """Async wrapper for download"""
+        """Download selected songs from a playlist to local directory.
+        
+        Args:
+            url: Original playlist URL
+            chosen_urls: Dict mapping song titles to their URLs
+            playlist: Local directory to save downloaded songs
+            
+        Returns:
+            Status report dict with download results
+        """
         return await asyncio.to_thread(self._downloader.download, url, chosen_urls, playlist)
 
 class _Downloader:
+    """Internal synchronous downloader implementation."""
+    
     def __init__(self) -> None:
+        """Initialize the YoutubeDL downloader."""
         self._ydl = YoutubeDL
 
-    def get_url_entries(self, url : str) -> dict[str,str]:
+    def get_url_entries(self, url: str) -> dict[str, str]:
+        """Extract video entries from a YouTube URL without downloading.
+        
+        Args:
+            url: YouTube URL (video or playlist)
+            
+        Returns:
+            Dict mapping video titles to their URLs
+            
+        Raises:
+            NoYTMetadataFoundError: If URL metadata cannot be extracted
+        """
         ydl_opts = {
-            'quiet' : True,
-            'no_warnings' : True,
-            'extract_flat' : True
+            'quiet': True,
+            'no_warnings': True,
+            'extract_flat': True
         }
 
         with self._ydl(ydl_opts) as ydl:
             try:
-                info = ydl.extract_info(url,download=False)
+                info = ydl.extract_info(url, download=False)
                 if info is None:
                     raise NoYTMetadataFoundError(url)
                 if 'entries' not in info:
-                    return {info.get('title', url) : url}
+                    return {info.get('title', url): url}
 
                 result = {}
                 for entry in info['entries']:
@@ -52,19 +93,27 @@ class _Downloader:
             except Exception:
                 raise NoYTMetadataFoundError(url)
 
-    def download_to_path(self, playlist : Path, songlist : list[str]) -> dict:
-
+    def download_to_path(self, playlist: Path, songlist: list[str]) -> dict:
+        """Legacy download method that suffers from throttling issues.
+        
+        DEPRECATED: Use download() method instead.
+        
+        Args:
+            playlist: Directory path to download songs to
+            songlist: List of YouTube URLs to download
+            
+        Returns:
+            Status report with success/failure lists
+            
+        Raises:
+            InvalidPlaylistError: If playlist directory is invalid
+            ValueError: If songlist format is incorrect
         """
-        LEGACY METHOD: SUFFERS FROM THROTTLING ISSUES. DO NOT USE
-        Attempts to download songlist to playlist; returns dict of total songs,
-        songs successfully downloaded, and songs that could not be downloaded.
-        """
-
         status_report = {
-            "playlist_path" : playlist.expanduser().resolve(),
-            "song_list" : songlist,
-            "success" : [],
-            "failure" : []
+            "playlist_path": playlist.expanduser().resolve(),
+            "song_list": songlist,
+            "success": [],
+            "failure": []
         }
 
         if not playlist.exists() or not playlist.is_dir() or any(path.is_dir() for path in playlist.iterdir()):
@@ -90,25 +139,37 @@ class _Downloader:
                     status_report["success"].append(song)
                 except Exception as e:
                     status_report['failure'].append({
-                        "song" : song,
-                        "cause_of_failure" : f"{e}"
+                        "song": song,
+                        "cause_of_failure": f"{e}"
                     })
 
         return status_report
 
-    def download(self, url : str, chosen_urls : dict[str, str], playlist : Path) -> dict:
-
+    def download(self, url: str, chosen_urls: dict[str, str], playlist: Path) -> dict:
+        """Download selected songs from a playlist with improved matching.
+        
+        Downloads the entire playlist to a temp directory, then moves only
+        the selected songs to the target playlist directory.
+        
+        Args:
+            url: Original YouTube playlist URL
+            chosen_urls: Dict mapping song titles to their URLs
+            playlist: Local directory to save selected songs
+            
+        Returns:
+            Status report dict with download results
+            
+        Raises:
+            InvalidPlaylistError: If playlist directory is invalid
+            ValueError: If chosen_urls format is incorrect
         """
-        Hopefully improved method at downloading songs
-        """
-
         song_name_list = list(chosen_urls.keys())
 
         status_report = {
-            "playlist_path" : playlist.expanduser().resolve(),
-            "song_list" : chosen_urls,
-            "success" : [],
-            "failure" : [],
+            "playlist_path": playlist.expanduser().resolve(),
+            "song_list": chosen_urls,
+            "success": [],
+            "failure": [],
         }
 
         if not playlist.exists() or not playlist.is_dir() or any(path.is_dir() for path in playlist.iterdir()):
@@ -151,13 +212,13 @@ class _Downloader:
                         target = playlist / file.name
                         shutil.move(str(file), str(target))
                         status_report['success'].append({
-                            'song' : f'{file.stem}',
-                            'path' : target,
+                            'song': f'{file.stem}',
+                            'path': target,
                         })
                     except Exception as e:
                         status_report['failure'].append({
-                            'song' : f'{file.stem}',
-                            'error' : f'{e}'
+                            'song': f'{file.stem}',
+                            'error': f'{e}'
                         })
 
             downloaded_song_names = [item['song'] for item in status_report['success']]
@@ -174,7 +235,21 @@ class _Downloader:
                 shutil.rmtree(tmp)
         
     def _titles_match(self, filename: str, selected_title: str, threshold: float = 0.6) -> bool:
-        def normalize_string(s):
+        """Check if a filename matches a selected title using fuzzy matching.
+        
+        First tries exact substring matching, then falls back to fuzzy
+        string similarity matching.
+        
+        Args:
+            filename: Downloaded file's stem name
+            selected_title: User-selected song title
+            threshold: Minimum similarity ratio for fuzzy matching
+            
+        Returns:
+            True if titles are considered a match
+        """
+        def normalize_string(s: str) -> str:
+            """Normalize Unicode string for comparison."""
             return unicodedata.normalize('NFKD', s).lower().strip()
     
         norm_filename = normalize_string(filename)
