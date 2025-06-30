@@ -47,6 +47,11 @@ on `fzf` to mock a basic UI. Windows users may access the same using WSL.
 
 The app treats all flat directories in the `~/Music` directory as valid playlists.
 
+***IMPORTANT***
+
+This is not a true CLI in the traditional sense: do not attempt stuff like `smsd load ~/Music/myplaylist`.
+It will bug.
+
 ## License
 
 This project is licensed under the [MIT License](./LICENSE). You’re free to use, modify,
