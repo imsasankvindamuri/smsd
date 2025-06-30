@@ -1,6 +1,7 @@
 from enum import Enum
 import threading
-from typing import Generator, Self
+from typing import Self
+from collections.abc import Generator
 import vlc
 from pathlib import Path
 import asyncio
@@ -32,7 +33,7 @@ class MusicCoreLib:
     
     def __init__(self) -> None:
         """Initialize async wrapper with underlying sync player."""
-        self._sync_player = _SyncMusicPlayer()
+        self._sync_player : _SyncMusicPlayer = _SyncMusicPlayer()
     
     # Getters
     
