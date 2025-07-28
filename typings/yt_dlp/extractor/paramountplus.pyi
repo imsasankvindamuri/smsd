@@ -1,6 +1,0 @@
-from ..utils import ExtractorError as ExtractorError, int_or_none as int_or_none, url_or_none as url_or_none
-from .cbs import CBSBaseIE as CBSBaseIE
-from .common import InfoExtractor as InfoExtractor
-
-class ParamountPlusIE(CBSBaseIE): ...
-class ParamountPlusSeriesIE(InfoExtractor): ...

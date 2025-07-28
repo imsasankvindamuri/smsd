@@ -1,6 +1,0 @@
-from ..utils import ExtractorError as ExtractorError, OnDemandPagedList as OnDemandPagedList, extract_attributes as extract_attributes, get_element_by_class as get_element_by_class, get_element_html_by_class as get_element_html_by_class
-from .common import InfoExtractor as InfoExtractor
-from .jwplatform import JWPlatformIE as JWPlatformIE
-
-class HollywoodReporterIE(InfoExtractor): ...
-class HollywoodReporterPlaylistIE(InfoExtractor): ...

@@ -1,6 +1,0 @@
-from ..utils import ExtractorError as ExtractorError, int_or_none as int_or_none, parse_iso8601 as parse_iso8601, str_or_none as str_or_none
-from .amp import AMPIE as AMPIE
-from .common import InfoExtractor as InfoExtractor
-
-class BleacherReportIE(InfoExtractor): ...
-class BleacherReportCMSIE(AMPIE): ...

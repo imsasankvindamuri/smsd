@@ -1,6 +1,0 @@
-from ..utils import clean_html as clean_html, extract_attributes as extract_attributes, int_or_none as int_or_none, merge_dicts as merge_dicts, parse_duration as parse_duration, parse_iso8601 as parse_iso8601, parse_resolution as parse_resolution, try_call as try_call, update_url as update_url, url_or_none as url_or_none
-from ..utils.traversal import find_elements as find_elements, traverse_obj as traverse_obj
-from .common import InfoExtractor as InfoExtractor
-
-class CNNIE(InfoExtractor): ...
-class CNNIndonesiaIE(InfoExtractor): ...

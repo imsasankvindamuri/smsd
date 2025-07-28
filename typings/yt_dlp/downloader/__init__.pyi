@@ -1,6 +1,0 @@
-from .common import FileDownloader as FileDownloader
-
-__all__ = ['FileDownloader', 'get_suitable_downloader', 'shorten_protocol_name']
-
-def get_suitable_downloader(info_dict, params={}, default=..., protocol=None, to_stdout: bool = False): ...
-def shorten_protocol_name(proto, simplify: bool = False): ...

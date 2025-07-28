@@ -1,3 +1,0 @@
-from .jixie import JixieBaseIE as JixieBaseIE
-
-class MoviewPlayIE(JixieBaseIE): ...

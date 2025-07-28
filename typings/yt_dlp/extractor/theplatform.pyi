@@ -1,9 +1,0 @@
-from ..networking import HEADRequest as HEADRequest, Request as Request
-from ..utils import ExtractorError as ExtractorError, determine_ext as determine_ext, find_xpath_attr as find_xpath_attr, float_or_none as float_or_none, int_or_none as int_or_none, mimetype2ext as mimetype2ext, parse_age_limit as parse_age_limit, parse_qs as parse_qs, traverse_obj as traverse_obj, unsmuggle_url as unsmuggle_url, update_url as update_url, update_url_query as update_url_query, url_or_none as url_or_none, urlhandle_detect_ext as urlhandle_detect_ext, xpath_with_ns as xpath_with_ns
-from .adobepass import AdobePassIE as AdobePassIE
-
-default_ns: str
-
-class ThePlatformBaseIE(AdobePassIE): ...
-class ThePlatformIE(ThePlatformBaseIE): ...
-class ThePlatformFeedIE(ThePlatformBaseIE): ...

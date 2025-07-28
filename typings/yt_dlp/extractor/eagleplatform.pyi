@@ -1,6 +1,0 @@
-from ..networking.exceptions import HTTPError as HTTPError
-from ..utils import ExtractorError as ExtractorError, int_or_none as int_or_none, smuggle_url as smuggle_url, unsmuggle_url as unsmuggle_url, url_or_none as url_or_none
-from .common import InfoExtractor as InfoExtractor
-
-class EaglePlatformIE(InfoExtractor): ...
-class ClipYouEmbedIE(InfoExtractor): ...

@@ -1,6 +1,0 @@
-from ..utils import filter_dict as filter_dict, float_or_none as float_or_none, int_or_none as int_or_none, parse_qs as parse_qs, str_or_none as str_or_none, try_get as try_get, unified_timestamp as unified_timestamp, url_or_none as url_or_none
-from ..utils.traversal import traverse_obj as traverse_obj
-from .common import InfoExtractor as InfoExtractor
-
-class SpreakerIE(InfoExtractor): ...
-class SpreakerShowIE(InfoExtractor): ...

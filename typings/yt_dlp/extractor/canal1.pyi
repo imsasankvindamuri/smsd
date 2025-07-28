@@ -1,3 +1,0 @@
-from .common import InfoExtractor as InfoExtractor
-
-class Canal1IE(InfoExtractor): ...

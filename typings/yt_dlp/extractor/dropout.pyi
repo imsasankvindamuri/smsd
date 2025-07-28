@@ -1,6 +1,0 @@
-from ..utils import ExtractorError as ExtractorError, OnDemandPagedList as OnDemandPagedList, clean_html as clean_html, extract_attributes as extract_attributes, get_element_by_class as get_element_by_class, get_element_by_id as get_element_by_id, get_elements_html_by_class as get_elements_html_by_class, int_or_none as int_or_none, traverse_obj as traverse_obj, unified_strdate as unified_strdate, urlencode_postdata as urlencode_postdata
-from .common import InfoExtractor as InfoExtractor
-from .vimeo import VHXEmbedIE as VHXEmbedIE
-
-class DropoutIE(InfoExtractor): ...
-class DropoutSeasonIE(InfoExtractor): ...
