@@ -1,0 +1,3 @@
+from .jixie import JixieBaseIE as JixieBaseIE
+
+class KompasVideoIE(JixieBaseIE): ...

@@ -1,0 +1,6 @@
+from ..utils import extract_attributes as extract_attributes, float_or_none as float_or_none, int_or_none as int_or_none, join_nonempty as join_nonempty, mimetype2ext as mimetype2ext, parse_resolution as parse_resolution, str_or_none as str_or_none, unescapeHTML as unescapeHTML, url_or_none as url_or_none
+from ..utils.traversal import traverse_obj as traverse_obj
+from .common import InfoExtractor as InfoExtractor
+
+class VidyardBaseIE(InfoExtractor): ...
+class VidyardIE(VidyardBaseIE): ...

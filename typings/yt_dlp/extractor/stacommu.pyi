@@ -1,0 +1,13 @@
+from ..utils import int_or_none as int_or_none, traverse_obj as traverse_obj, url_basename as url_basename, url_or_none as url_or_none
+from .wrestleuniverse import WrestleUniverseBaseIE as WrestleUniverseBaseIE
+
+class StacommuBaseIE(WrestleUniverseBaseIE): ...
+class StacommuVODIE(StacommuBaseIE): ...
+class StacommuLiveIE(StacommuBaseIE): ...
+class TheaterComplexTownBaseIE(StacommuBaseIE): ...
+
+class TheaterComplexTownVODIE(TheaterComplexTownBaseIE):
+    IE_NAME: str
+
+class TheaterComplexTownPPVIE(TheaterComplexTownBaseIE):
+    IE_NAME: str

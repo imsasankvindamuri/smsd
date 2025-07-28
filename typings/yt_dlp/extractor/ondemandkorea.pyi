@@ -1,0 +1,6 @@
+from ..utils import ExtractorError as ExtractorError, OnDemandPagedList as OnDemandPagedList, float_or_none as float_or_none, int_or_none as int_or_none, join_nonempty as join_nonempty, parse_age_limit as parse_age_limit, parse_qs as parse_qs, str_or_none as str_or_none, unified_strdate as unified_strdate, url_or_none as url_or_none
+from ..utils.traversal import traverse_obj as traverse_obj
+from .common import InfoExtractor as InfoExtractor
+
+class OnDemandKoreaIE(InfoExtractor): ...
+class OnDemandKoreaProgramIE(InfoExtractor): ...

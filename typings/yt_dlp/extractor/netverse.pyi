@@ -1,0 +1,13 @@
+from ..utils import smuggle_url as smuggle_url, traverse_obj as traverse_obj
+from .common import InfoExtractor as InfoExtractor, SearchInfoExtractor as SearchInfoExtractor
+from .dailymotion import DailymotionIE as DailymotionIE
+from _typeshed import Incomplete
+from collections.abc import Generator
+
+class NetverseBaseIE(InfoExtractor): ...
+class NetverseIE(NetverseBaseIE): ...
+
+class NetversePlaylistIE(NetverseBaseIE):
+    def parse_playlist(self, json_data, playlist_id) -> Generator[Incomplete]: ...
+
+class NetverseSearchIE(SearchInfoExtractor): ...

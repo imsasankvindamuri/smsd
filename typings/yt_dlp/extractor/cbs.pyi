@@ -1,0 +1,9 @@
+from ..utils import ExtractorError as ExtractorError, extract_attributes as extract_attributes, find_xpath_attr as find_xpath_attr, get_element_html_by_id as get_element_html_by_id, int_or_none as int_or_none, smuggle_url as smuggle_url, update_url_query as update_url_query, url_or_none as url_or_none, xpath_element as xpath_element, xpath_text as xpath_text
+from .brightcove import BrightcoveNewIE as BrightcoveNewIE
+from .common import InfoExtractor as InfoExtractor
+from .theplatform import ThePlatformFeedIE as ThePlatformFeedIE
+from .youtube import YoutubeIE as YoutubeIE
+
+class CBSBaseIE(ThePlatformFeedIE): ...
+class CBSIE(CBSBaseIE): ...
+class ParamountPressExpressIE(InfoExtractor): ...

@@ -1,0 +1,3 @@
+from ..globals import LAZY_EXTRACTORS as LAZY_EXTRACTORS
+
+def __getattr__(name): ...

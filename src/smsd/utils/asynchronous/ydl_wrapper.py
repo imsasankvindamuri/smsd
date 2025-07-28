@@ -7,6 +7,7 @@ from smsd.utils.exceptions import NoYTMetadataFoundError, InvalidPlaylistError
 from difflib import SequenceMatcher
 import unicodedata
 import asyncio
+import re
 
 class Downloader:
     """Async wrapper for the internal _Downloader class."""
@@ -103,7 +104,7 @@ class _Downloader:
             songlist: List of YouTube URLs to download
             
         Returns:
-            Status report with success/failure lists
+            Status report with success/failure lists (MODIFIED FORMAT)
             
         Raises:
             InvalidPlaylistError: If playlist directory is invalid
@@ -133,13 +134,30 @@ class _Downloader:
         }
 
         with self._ydl(ydl_opts) as ydl:
-            for song in songlist:
+            for song_url in songlist:
                 try:
-                    ydl.download([song])
-                    status_report["success"].append(song)
+                    # Get the title first to track what we downloaded
+                    info = ydl.extract_info(song_url, download=False)
+                    song_title = info.get('title', 'Unknown Title') if info else 'Unknown Title'
+                    
+                    ydl.download([song_url])
+                    
+                    # Find the downloaded file
+                    mp3_files = list(playlist.glob("*.mp3"))
+                    downloaded_file = None
+                    for mp3_file in mp3_files:
+                        if self._titles_match(mp3_file.stem, song_title):
+                            downloaded_file = mp3_file
+                            break
+                    
+                    status_report["success"].append({
+                        "song": song_title,
+                        "url": song_url,
+                        "path": downloaded_file
+                    })
                 except Exception as e:
                     status_report['failure'].append({
-                        "song": song,
+                        "song": song_url,
                         "cause_of_failure": f"{e}"
                     })
 
@@ -163,6 +181,7 @@ class _Downloader:
             InvalidPlaylistError: If playlist directory is invalid
             ValueError: If chosen_urls format is incorrect
         """
+        choose_legacy_method = len(chosen_urls) < 10
         song_name_list = list(chosen_urls.keys())
 
         status_report = {
@@ -176,11 +195,17 @@ class _Downloader:
             raise InvalidPlaylistError(playlist=playlist)
         if not isinstance(song_name_list, list) or any(not isinstance(song, str) for song in song_name_list):
             raise ValueError(f"Invalid input for songlist={chosen_urls}; Required mapping: dict mapping title to URLs.")
-    
+
+        if choose_legacy_method:
+            print('Using legacy method as number of requested songs are less than 10...')
+            # Convert chosen_urls to list of URLs and call legacy method
+            return self.download_to_path(playlist, list(chosen_urls.values()))
+
         tmp = playlist / "tmp"
         tmp.mkdir(exist_ok=True)
 
         try:
+            # Download individual songs instead of entire playlist to avoid extra downloads
             ydl_opts = {
                 'format': 'bestaudio/best',
                 'postprocessors': [
@@ -201,40 +226,50 @@ class _Downloader:
                 'outtmpl': f'{tmp}/%(title)s.%(ext)s',
                 'writethumbnail': True,
                 'writeinfojson': True,
+                'noplaylist': True,  # Important: don't download entire playlist
             }
+            
             with self._ydl(ydl_opts) as ydl:
-                ydl.download([url])
-
-            downloaded_files = list(tmp.glob("*.mp3"))
-            for file in downloaded_files:
-                if any(self._titles_match(file.stem, title) for title in song_name_list):
+                # Download only the chosen songs
+                for song_title, song_url in chosen_urls.items():
                     try:
-                        target = playlist / file.name
-                        shutil.move(str(file), str(target))
-                        status_report['success'].append({
-                            'song': f'{file.stem}',
-                            'path': target,
-                        })
+                        print(f"Downloading: {song_title}")
+                        ydl.download([song_url])
+                        
+                        # Find the downloaded file
+                        downloaded_files = list(tmp.glob("*.mp3"))
+                        matched_file = None
+                        
+                        for file in downloaded_files:
+                            if self._titles_match(file.stem, song_title):
+                                matched_file = file
+                                break
+                        
+                        if matched_file:
+                            target = playlist / matched_file.name
+                            shutil.move(str(matched_file), str(target))
+                            status_report['success'].append({
+                                'song': song_title,
+                                'path': target,
+                            })
+                            print(f"Successfully downloaded: {song_title}")
+                        else:
+                            status_report['failure'].append({
+                                'song': song_title,
+                                'error': 'Downloaded file not found or not matched'
+                            })
                     except Exception as e:
                         status_report['failure'].append({
-                            'song': f'{file.stem}',
+                            'song': song_title,
                             'error': f'{e}'
                         })
-
-            downloaded_song_names = [item['song'] for item in status_report['success']]
-            for requested_song in song_name_list:
-                if not any(self._titles_match(downloaded_name, requested_song) for downloaded_name in downloaded_song_names):
-                    status_report['failure'].append({
-                        'song': requested_song,
-                        'error': 'Song not found in downloaded playlist'
-                    })
 
             return status_report
         finally:
             if tmp.exists():
                 shutil.rmtree(tmp)
         
-    def _titles_match(self, filename: str, selected_title: str, threshold: float = 0.6) -> bool:
+    def _titles_match(self, filename: str, selected_title: str, threshold: float = 0.8) -> bool:
         """Check if a filename matches a selected title using fuzzy matching.
         
         First tries exact substring matching, then falls back to fuzzy
@@ -254,11 +289,19 @@ class _Downloader:
     
         norm_filename = normalize_string(filename)
         norm_title = normalize_string(selected_title)
+        
+        # Debug output
+        print(f"Matching: '{norm_filename}' vs '{norm_title}'")
     
         # Check if one contains the other (original logic)
         if norm_title in norm_filename or norm_filename in norm_title:
+            print(f"Exact match found")
             return True
     
-        # Fuzzy matching as fallback
+        # Fuzzy matching as fallback with higher threshold
         similarity = SequenceMatcher(None, norm_filename, norm_title).ratio()
-        return similarity >= threshold
+        print(f"Similarity: {similarity}")
+        is_match = similarity >= threshold
+        if is_match:
+            print(f"Fuzzy match found")
+        return is_match

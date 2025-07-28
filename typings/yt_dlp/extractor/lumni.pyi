@@ -1,0 +1,3 @@
+from .francetv import FranceTVBaseInfoExtractor as FranceTVBaseInfoExtractor
+
+class LumniIE(FranceTVBaseInfoExtractor): ...

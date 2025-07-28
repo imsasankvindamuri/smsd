@@ -1,0 +1,13 @@
+from ..utils import ExtractorError as ExtractorError, format_field as format_field, int_or_none as int_or_none, str_or_none as str_or_none, traverse_obj as traverse_obj, try_get as try_get
+from .common import InfoExtractor as InfoExtractor
+
+class TrovoBaseIE(InfoExtractor): ...
+class TrovoIE(TrovoBaseIE): ...
+class TrovoVodIE(TrovoBaseIE): ...
+class TrovoChannelBaseIE(TrovoBaseIE): ...
+
+class TrovoChannelVodIE(TrovoChannelBaseIE):
+    IE_DESC: str
+
+class TrovoChannelClipIE(TrovoChannelBaseIE):
+    IE_DESC: str
