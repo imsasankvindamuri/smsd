@@ -50,7 +50,9 @@ The app treats all flat directories in the `~/Music` directory as valid playlist
 ***IMPORTANT***
 
 This is not a true CLI in the traditional sense: do not attempt stuff like `smsd load ~/Music/myplaylist`.
-It will bug.
+It won't work.
+
+The program expects `~/Music` to exist, so run `mkdir ~/Music` if it doesn't exist.
 
 ## License
 
