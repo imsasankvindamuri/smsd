@@ -146,7 +146,7 @@ class _Downloader:
                     mp3_files = list(playlist.glob("*.mp3"))
                     downloaded_file = None
                     for mp3_file in mp3_files:
-                        if self._titles_match(mp3_file.stem, song_title):
+                        if self._titles_match(mp3_file.stem, str(song_title)):
                             downloaded_file = mp3_file
                             break
                     
@@ -158,7 +158,7 @@ class _Downloader:
                 except Exception as e:
                     status_report['failure'].append({
                         "song": song_url,
-                        "cause_of_failure": f"{e}"
+                        "error": f"{e}"
                     })
 
         return status_report
